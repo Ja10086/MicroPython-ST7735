@@ -1,32 +1,24 @@
-# MicroPython-ST7735
+# MicroPython-ST7735 multiple displays
 
-This is a modified version of [GuyCarver's ST7735.py](https://github.com/GuyCarver/MicroPython/blob/master/lib/ST7735.py) ST7735 TFT LCD driver for MicroPython.
+This is a fork of [boochow's library](https://github.com/boochow/MicroPython-ST7735) which is a modified version of [GuyCarver's ST7735.py](https://github.com/GuyCarver/MicroPython/blob/master/lib/ST7735.py) ST7735 TFT LCD driver for MicroPython.
 
-This version is for micropython-esp32.
+It differs in that you can connect multiple diplays on the same bus and use the library to control all of them. Instead of supplying a single chip-select pin, you give an array of the chip-select pins of all displays. All other pins are shared. I added a method to instruct the library which display to use, i.e. which chip-select to activate.
 
-A font file is necessary for displaying text (some font files are in [GuyCarver's repo](https://github.com/GuyCarver/MicroPython/tree/master/lib)).
+```python
 
-Text nowrap option added(default: nowrap=False).
+# Initialize SPI Bus
+spi = SPI(2, baudrate=20000000, polarity=0, phase=0, sck=Pin(14), mosi=Pin(13), miso=Pin(12))
 
-graphicstest.py is a sample code. I wrote this to make it similar to [Adafruit's graphicstest sketch for Arduino](https://github.com/adafruit/Adafruit-ST7735-Library/tree/master/examples/graphicstest). 
+# CS pins for all screens in use
+screens = [5, 18, 19]
+# Initialize the TFT with the screens array
+# DC = 16, Reset = 17, CS = [5,18,19]
+tft=TFT(spi,16,17,screens)
 
-If graphicstest.py doesn't work correctly, try replaceing initr() at line 8 to initg() or initb() or initb2(). You can also change rgb(True) to rgb(False) to switch red and blue pixels if your LCD module shows incorrect colors.
+tft.use(0)
+tft.fill(TFT.BLACK)
+tft.use(1)
+tft.fill(TFT.WHITE)
 
-Pin connections:
+```
 
-LCD |ESP32-DevKitC
-----|----
-VLED|3V3
-RST |IO17
-A0  |IO16(DC)
-SDA |IO13(MOSI)
-SCK |IO14(CLK)
-VCC |3V3
-CS  |IO18
-GND |GND
-
-[![YouTube image here](https://img.youtube.com/vi/xIy8DPBZsIk/0.jpg)](https://www.youtube.com/watch?v=xIy8DPBZsIk)
-
-tftbmp.py is another sample similar to [Adafruit's tftbmp sketch for Arduino](https://github.com/adafruit/Adafruit-ST7735-Library/blob/master/examples/spitftbitmap/spitftbitmap.ino).
-
-Place bmp file named 'test128x160.bmp' in the file system of MicroPython using file uploading tool such as [ampy](https://github.com/adafruit/ampy), etc.

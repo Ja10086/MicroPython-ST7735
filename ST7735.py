@@ -110,11 +110,23 @@ class TFT(object) :
     self._rgb = True                   #color order of rgb.
     self.dc  = machine.Pin(aDC, machine.Pin.OUT, machine.Pin.PULL_DOWN)
     self.reset = machine.Pin(aReset, machine.Pin.OUT, machine.Pin.PULL_DOWN)
-    self.cs = machine.Pin(aCS, machine.Pin.OUT, machine.Pin.PULL_DOWN)
+    # Instead of a single chipselect pin, we supply an array of the CS pins for all displays on the bus
+    # Initialize all the available chipselect pins to work with multiple displays over the same bus
+    self.cs_avail = [cs for cs in map(lambda x: machine.Pin(x, machine.Pin.OUT, machine.Pin.PULL_DOWN), aCS)]
+    # Activate the first one by default
+    self.cs = self.cs_avail[0]
     self.cs(1)
     self.spi = spi
     self.colorData = bytearray(2)
     self.windowLocData = bytearray(4)
+
+  # Method to tell the library which display to activate
+  def use(self, index):
+    # Deactivate all displays
+    for i in range(len(self.cs_avail)):
+      self.cs_avail[i](1)
+    # Select the appropriate one
+    self.cs = self.cs_avail[index]
 
   def size( self ) :
     return self._size
